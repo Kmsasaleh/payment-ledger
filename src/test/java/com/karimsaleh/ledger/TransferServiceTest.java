@@ -107,7 +107,9 @@ class TransferServiceTest {
         }
         executor.shutdown();
 
-        assertThat(balanceOf(alice)).isGreaterThanOrEqualTo(0);
+        // Exactly five $20 transfers fit into $100
+        assertThat(balanceOf(alice)).isEqualTo(0);
+        assertThat(balanceOf(bob)).isEqualTo(10_000);
     }
 
     private long balanceOf(Account account) {

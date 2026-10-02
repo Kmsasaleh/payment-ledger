@@ -45,10 +45,17 @@ public class TransferService {
             throw new IllegalArgumentException("Cannot transfer to the same account");
         }
 
-        Account from = accountRepository.findById(fromAccountId)
-                .orElseThrow(() -> new IllegalArgumentException("Account not found: " + fromAccountId));
-        Account to = accountRepository.findById(toAccountId)
-                .orElseThrow(() -> new IllegalArgumentException("Account not found: " + toAccountId));
+        // Lock both accounts, always in the same order (smaller ID first) to prevent deadlocks
+        UUID firstId = fromAccountId.compareTo(toAccountId) < 0 ? fromAccountId : toAccountId;
+        UUID secondId = firstId.equals(fromAccountId) ? toAccountId : fromAccountId;
+
+        Account first = accountRepository.findByIdForUpdate(firstId)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found: " + firstId));
+        Account second = accountRepository.findByIdForUpdate(secondId)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found: " + secondId));
+
+        Account from = first.getId().equals(fromAccountId) ? first : second;
+        Account to = (from == first) ? second : first;
 
         if (!from.getCurrency().equals(to.getCurrency())) {
             throw new IllegalArgumentException("Currency mismatch: " + from.getCurrency() + " vs " + to.getCurrency());
