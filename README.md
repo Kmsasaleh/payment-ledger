@@ -4,8 +4,7 @@
 
 A double-entry payment ledger API built with Java and Spring Boot. It moves money between accounts the way real payment systems do: every transfer is recorded as balanced debit and credit entries, retried requests never charge twice, and concurrent transfers can't overdraw an account.
 
-**Live API:** https://payment-ledger-uzmd.onrender.com
-(Free hosting: after a period of inactivity, the first request can take 1–2 minutes while the service wakes up.)
+**Live API (interactive docs):** https://payment-ledger-uzmd.onrender.com
 
 ## Features
 
