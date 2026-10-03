@@ -24,10 +24,10 @@ Java 21 · Spring Boot 4 · Spring Data JPA / Hibernate · PostgreSQL · Flyway 
 
 ```mermaid
 flowchart LR
-    C[Client] -->|REST / JSON| API[Controllers<br/>validation + error handling]
-    API --> S[TransferService<br/>@Transactional]
-    S --> R[Spring Data JPA<br/>repositories]
-    R --> DB[(PostgreSQL<br/>Flyway migrations)]
+    C["Client"] -->|REST / JSON| API["Controllers<br/>validation + error handling"]
+    API --> S["TransferService<br/>@Transactional"]
+    S --> R["Spring Data JPA<br/>repositories"]
+    R --> DB[("PostgreSQL<br/>Flyway migrations")]
 ```
 
 The schema has three tables:
