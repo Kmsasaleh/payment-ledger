@@ -4,6 +4,9 @@
 
 A double-entry payment ledger API built with Java and Spring Boot. It moves money between accounts the way real payment systems do: every transfer is recorded as balanced debit and credit entries, retried requests never charge twice, and concurrent transfers can't overdraw an account.
 
+**Live API:** https://payment-ledger-uzmd.onrender.com
+(Free hosting: after a period of inactivity, the first request can take 1–2 minutes while the service wakes up.)
+
 ## Features
 
 - **Double-entry accounting**: every transaction writes entries that sum to zero, so money is never created or lost
@@ -15,7 +18,7 @@ A double-entry payment ledger API built with Java and Spring Boot. It moves mone
 
 ## Tech stack
 
-Java 21 · Spring Boot 4 · Spring Data JPA / Hibernate · PostgreSQL 16 · Flyway · Testcontainers · JUnit 5 · Docker · GitHub Actions
+Java 21 · Spring Boot 4 · Spring Data JPA / Hibernate · PostgreSQL · Flyway · Testcontainers · JUnit 5 · Docker · GitHub Actions · Render · Neon
 
 ## Architecture
 
@@ -48,6 +51,8 @@ The fix locks both account rows with `SELECT ... FOR UPDATE` before checking the
 The commit history shows both steps: the test exposing the bug, then the fix.
 
 ## API
+
+The examples use `localhost:8080`. To try the live version, replace it with `https://payment-ledger-uzmd.onrender.com`.
 
 ### Create an account
 
@@ -93,6 +98,10 @@ Flyway creates the schema automatically on startup.
 
 Testcontainers starts a throwaway Postgres in Docker, so tests never touch your local data.
 
+## Deployment
+
+The app is packaged as a multi-stage Docker image and deployed on Render, with a managed Neon PostgreSQL database. Database credentials are supplied through environment variables (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`), so no secrets live in the code. Every push to `main` runs the test suite in GitHub Actions and redeploys automatically.
+
 ## Design decisions
 
 - **Money as integer cents (`BIGINT`)**, never floating point, to avoid rounding errors
@@ -105,4 +114,4 @@ Testcontainers starts a throwaway Postgres in Docker, so tests never touch your 
 - Clean handling of two simultaneous requests with the same idempotency key
 - Reversal transactions
 - Reconciliation against an external statement
-- Deployment with a managed Postgres
+- API key authentication for the live demo
