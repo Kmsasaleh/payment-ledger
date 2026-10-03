@@ -31,13 +31,11 @@ public class TransferService {
                                       long amountCents,
                                       String description) {
 
-        // 1. Idempotency: if we've seen this key before, return the original result
         Optional<LedgerTransaction> existing = transactionRepository.findByIdempotencyKey(idempotencyKey);
         if (existing.isPresent()) {
             return existing.get();
         }
 
-        // 2. Validate the request
         if (amountCents <= 0) {
             throw new IllegalArgumentException("Amount must be positive");
         }
@@ -45,7 +43,7 @@ public class TransferService {
             throw new IllegalArgumentException("Cannot transfer to the same account");
         }
 
-        // Lock both accounts, always in the same order (smaller ID first) to prevent deadlocks
+        // Lock both accounts in a consistent order (smaller ID first) to prevent deadlocks
         UUID firstId = fromAccountId.compareTo(toAccountId) < 0 ? fromAccountId : toAccountId;
         UUID secondId = firstId.equals(fromAccountId) ? toAccountId : fromAccountId;
 
@@ -61,7 +59,6 @@ public class TransferService {
             throw new IllegalArgumentException("Currency mismatch: " + from.getCurrency() + " vs " + to.getCurrency());
         }
 
-        // 3. User accounts can't go negative; system accounts can
         if (from.getType() == AccountType.USER) {
             long balance = entryRepository.balanceOf(fromAccountId);
             if (balance < amountCents) {
@@ -70,7 +67,6 @@ public class TransferService {
             }
         }
 
-        // 4. Double entry: money leaves one account and enters the other
         LedgerTransaction transaction = new LedgerTransaction(idempotencyKey, description);
         transaction.addEntry(from, -amountCents);
         transaction.addEntry(to, amountCents);

@@ -33,7 +33,6 @@ public class Account {
     private long version;
 
     protected Account() {
-        // Required by JPA
     }
 
     public Account(String name, AccountType type, String currency) {

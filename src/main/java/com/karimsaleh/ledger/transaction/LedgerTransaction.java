@@ -30,7 +30,6 @@ public class LedgerTransaction {
     private List<Entry> entries = new ArrayList<>();
 
     protected LedgerTransaction() {
-        // Required by JPA
     }
 
     public LedgerTransaction(String idempotencyKey, String description) {

@@ -28,7 +28,6 @@ public class Entry {
     private OffsetDateTime createdAt;
 
     protected Entry() {
-        // Required by JPA
     }
 
     Entry(LedgerTransaction transaction, Account account, long amountCents) {
