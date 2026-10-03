@@ -6,6 +6,28 @@ A double-entry payment ledger API built with Java and Spring Boot. It moves mone
 
 **Live API (interactive docs):** https://payment-ledger-uzmd.onrender.com
 
+## Try the live demo
+
+Open the [interactive docs](https://payment-ledger-uzmd.onrender.com) (it may take a minute to wake up), then for each step click the endpoint, **Try it out**, paste the body, and **Execute**.
+
+1. **POST /accounts:** create a funding source, then copy its `id`
+```json
+   {"name":"Funding","type":"SYSTEM","currency":"CAD"}
+```
+2. **POST /accounts:** create a user, then copy its `id`
+```json
+   {"name":"Alice","type":"USER","currency":"CAD"}
+```
+3. **POST /transfers:** set `Idempotency-Key` to any unique text (e.g. `demo-1`) and send $100 to Alice
+```json
+   {"fromAccountId":"<funding id>","toAccountId":"<alice id>","amountCents":10000,"description":"Initial funding"}
+```
+Expected: `201` with two entries, `-10000` and `+10000`.
+4. **GET /accounts/{id}:** Alice's `balanceCents` is `10000`.
+5. **Repeat step 3 with the same key:** you get the same `transactionId` back, and Alice's balance stays `10000`.
+6. **Send Alice 1000000 cents with a new key:** rejected with `422 Insufficient funds`.
+
+![Live demo: a transfer creating balanced entries](docs/demo.png)
 ## Features
 
 - **Double-entry accounting**: every transaction writes entries that sum to zero, so money is never created or lost
