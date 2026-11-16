@@ -3,9 +3,11 @@ package com.karimsaleh.ledger;
 import com.karimsaleh.ledger.account.Account;
 import com.karimsaleh.ledger.account.AccountRepository;
 import com.karimsaleh.ledger.account.AccountType;
+import com.karimsaleh.ledger.fraud.FakeJevClient;
 import com.karimsaleh.ledger.transaction.EntryRepository;
 import com.karimsaleh.ledger.transaction.InsufficientFundsException;
-import com.karimsaleh.ledger.transaction.LedgerTransaction;
+import com.karimsaleh.ledger.fraud.TriageOutcome;
+import com.karimsaleh.ledger.transaction.TransferResult;
 import com.karimsaleh.ledger.transaction.TransferService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,12 +39,16 @@ class TransferServiceTest {
     @Autowired
     private EntryRepository entryRepository;
 
+    @Autowired
+    private FakeJevClient fakeJev;
+
     private Account funding;
     private Account alice;
     private Account bob;
 
     @BeforeEach
     void setUp() {
+        fakeJev.reset(); // default: confident LOW, so ordinary transfers are approved
         funding = accountRepository.save(new Account("Funding", AccountType.SYSTEM, "CAD"));
         alice = accountRepository.save(new Account("Alice", AccountType.USER, "CAD"));
         bob = accountRepository.save(new Account("Bob", AccountType.USER, "CAD"));
@@ -64,10 +70,11 @@ class TransferServiceTest {
     void sameIdempotencyKeyDoesNotChargeTwice() {
         String key = newKey();
 
-        LedgerTransaction first = transferService.transfer(key, alice.getId(), bob.getId(), 2_500, "Dinner");
-        LedgerTransaction retry = transferService.transfer(key, alice.getId(), bob.getId(), 2_500, "Dinner");
+        TransferResult first = transferService.transfer(key, alice.getId(), bob.getId(), 2_500, "Dinner");
+        TransferResult retry = transferService.transfer(key, alice.getId(), bob.getId(), 2_500, "Dinner");
 
-        assertThat(retry.getId()).isEqualTo(first.getId());
+        assertThat(first.outcome()).isEqualTo(TriageOutcome.APPROVED);
+        assertThat(retry.transaction().getId()).isEqualTo(first.transaction().getId());
         assertThat(balanceOf(alice)).isEqualTo(7_500);
     }
 
@@ -78,6 +85,7 @@ class TransferServiceTest {
                 .isInstanceOf(InsufficientFundsException.class);
 
         assertThat(balanceOf(alice)).isEqualTo(10_000);
+        assertThat(fakeJev.callCount()).isZero(); // rejected before Jev is asked
     }
 
     @Test
