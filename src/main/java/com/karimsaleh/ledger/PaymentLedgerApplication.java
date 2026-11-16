@@ -2,8 +2,10 @@ package com.karimsaleh.ledger;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
+@ConfigurationPropertiesScan
 public class PaymentLedgerApplication {
 
 	public static void main(String[] args) {
