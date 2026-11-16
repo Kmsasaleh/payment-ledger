@@ -106,8 +106,10 @@ public class TransferService {
             return postingService.recordRejected(idempotencyKey, requestHash, fromAccountId, toAccountId,
                     amountCents, decision);
         } catch (DataIntegrityViolationException e) {
-            // A concurrent request with the same key won the race (unique key). Replay its result.
-            return replay(idempotencyKey, requestHash).orElseThrow(() -> e);
+            // Only a duplicate if a decision row with this key now exists (a concurrent request won
+            // the race). Replay it, or 409 if the hash differs. Any other violation (e.g.
+            // posted_iff_allowed) is a real bug or data problem and must propagate.
+            return replayDecision(idempotencyKey, requestHash).orElseThrow(() -> e);
         }
     }
 
@@ -127,9 +129,18 @@ public class TransferService {
     }
 
     private Optional<TransferResult> replay(String key, String requestHash) {
-        Optional<TransferDecision> found = decisionRepository.findByIdempotencyKey(key);
-        if (found.isPresent()) {
-            TransferDecision d = found.get();
+        Optional<TransferResult> fromDecision = replayDecision(key, requestHash);
+        if (fromDecision.isPresent()) {
+            return fromDecision;
+        }
+        // Legacy: transaction created before the triage feature, so no decision row exists.
+        return transactionRepository.findByIdempotencyKey(key)
+                .map(tx -> new TransferResult(TriageOutcome.SKIPPED, null, tx));
+    }
+
+    /** Replays the stored decision for this key, if any. Throws IdempotencyConflictException on a hash mismatch. */
+    private Optional<TransferResult> replayDecision(String key, String requestHash) {
+        return decisionRepository.findByIdempotencyKey(key).map(d -> {
             if (!d.getRequestHash().equals(requestHash)) {
                 throw new IdempotencyConflictException("Idempotency-Key was already used with a different request");
             }
@@ -138,11 +149,8 @@ public class TransferService {
                 tx = transactionRepository.findByIdempotencyKey(key)
                         .orElseThrow(() -> new IllegalStateException("Decision without transaction: " + d.getId()));
             }
-            return Optional.of(new TransferResult(d.getOutcome(), d.getId(), tx));
-        }
-        // Legacy: transaction created before the triage feature, so no decision row exists.
-        return transactionRepository.findByIdempotencyKey(key)
-                .map(tx -> new TransferResult(TriageOutcome.SKIPPED, null, tx));
+            return new TransferResult(d.getOutcome(), d.getId(), tx);
+        });
     }
 
     private void logDecision(String key, TriageDecision d) {
