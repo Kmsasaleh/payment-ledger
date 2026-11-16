@@ -1,0 +1,81 @@
+{
+  "model": "typesafe-ai/jev",
+  "answers": {
+    "fraud_risk": {
+      "type": "choice",
+      "choice": "critical",
+      "confidence": 0.83,
+      "probabilities": {
+        "low": 0.01,
+        "medium": 0.1,
+        "high": 0.89
+      }
+    },
+    "new_recipient": {
+      "type": "noul",
+      "noul": 0.94
+    },
+    "unusual_amount": {
+      "type": "noul",
+      "noul": 0.97
+    },
+    "velocity_spike": {
+      "type": "noul",
+      "noul": 0.12
+    },
+    "odd_time": {
+      "type": "noul",
+      "noul": 0.8
+    }
+  },
+  "usage": {
+    "input_tokens": 392,
+    "output_tokens": 61
+  },
+  "provider_metadata": {
+    "typesafe": {
+      "confidence": {
+        "fraud_risk": 0.83
+      },
+      "legend": {}
+    },
+    "gateway": {
+      "routing": {
+        "originalModelId": "typesafe-ai/jev",
+        "resolvedProvider": "typesafe-ai",
+        "fallbacksAvailable": [
+          "digitalocean"
+        ],
+        "canonicalSlug": "typesafe-ai/jev",
+        "finalProvider": "typesafe-ai",
+        "modelAttemptCount": 1,
+        "modelAttempts": [
+          {
+            "canonicalSlug": "typesafe-ai/jev",
+            "success": true,
+            "providerAttemptCount": 1,
+            "providerAttempts": [
+              {
+                "provider": "typesafe-ai",
+                "credentialType": "system",
+                "success": true,
+                "startTime": 1794854518582,
+                "endTime": 1794854518635,
+                "statusCode": 200
+              }
+            ]
+          }
+        ],
+        "totalProviderAttemptCount": 1
+      },
+      "cost": "0.000016464",
+      "marketCost": "0.000016464",
+      "surchargeCost": "0",
+      "gatewayCost": "0.000016464",
+      "inferenceCost": "0.000016464",
+      "inputInferenceCost": "0.000016464",
+      "outputInferenceCost": "0",
+      "generationId": "gen_01M7JTMZNHCJJ48B17ZGTPGAZ2"
+    }
+  }
+}
